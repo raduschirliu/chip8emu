@@ -1,3 +1,9 @@
+# Eclipse
+.settings/
+
+# ROM folder
+roms/
+
 # Compiled class file
 *.class
 
