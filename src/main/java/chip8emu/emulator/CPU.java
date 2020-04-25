@@ -6,11 +6,13 @@ public class CPU {
 	private short pc;
 	private short sp;
 	private short stack[];
-	private short iRegister;
+	private short iRegister, vfRegister;
 	private short memory[];
 	private short registers[];
 	private short opcode;
 	private boolean display[][];
+	private boolean awaitingKey;
+	private boolean keys[];
 	private int delayTimer, soundTimer;
 	private OpcodeHandler opcodeHandlers[];
 	private Random random;
@@ -21,12 +23,13 @@ public class CPU {
 		memory = new short[4096];
 		registers = new short[16];
 		display = new boolean[64][32];
+		keys = new boolean[16];
+		awaitingKey = false;
 		pc = 200;
 		sp = 0;
 		
 		loadOpcodeHandlers();
 		loadROM();
-		run();
 	}
 	
 	private void loadOpcodeHandlers() {
@@ -160,7 +163,20 @@ public class CPU {
 			
 			// Exxx
 			() -> {
-				// TODO
+				int key = opcode & 0x0f00;
+				int instr = opcode & 0x00ff;
+				
+				if (instr == 0x9e) {
+					// SKP Vx
+					if (keys[key]) {
+						pc += 2;
+					}
+				} else if (instr == 0xa1) {
+					// LD Vx, DT
+					if (!keys[key]) {
+						pc += 2;
+					}
+				}
 			},
 			
 			// Fxxx
@@ -185,14 +201,20 @@ public class CPU {
 		System.out.println("Loaded ROM");
 	}
 	
-	public void run() {
-		opcode = memory[pc];
-		opcode <<= 8;
-		opcode += memory[pc + 1];
-		
-		int leading = (opcode >> 12) & 0xf;
-		opcodeHandlers[leading].run();
-		
-		pc += 2;
+	public void keyPressed(int keyCode, boolean pressed) {
+		keys[keyCode] = pressed;
+	}
+	
+	public void step() {
+		if (!awaitingKey) {
+			opcode = memory[pc];
+			opcode <<= 8;
+			opcode += memory[pc + 1];
+			
+			int leading = (opcode >> 12) & 0xf;
+			opcodeHandlers[leading].run();
+			
+			pc += 2;
+		}
 	}
 }
