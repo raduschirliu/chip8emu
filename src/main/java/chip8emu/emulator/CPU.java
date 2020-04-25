@@ -1,5 +1,7 @@
 package chip8emu.emulator;
 
+import java.util.Random;
+
 public class CPU {
 	private short pc;
 	private short sp;
@@ -11,8 +13,10 @@ public class CPU {
 	private boolean display[][];
 	private int delayTimer, soundTimer;
 	private OpcodeHandler opcodeHandlers[];
+	private Random random;
 	
 	public CPU() {
+		random = new Random();
 		stack = new short[16];
 		memory = new short[4096];
 		registers = new short[16];
@@ -29,7 +33,7 @@ public class CPU {
 		opcodeHandlers = new OpcodeHandler[] {
 			// 0xxx
 			() -> {
-				int lastBit = opcode & 0b0001;
+				int lastBit = opcode & 0x000f;
 				
 				if (lastBit == 0x0) {
 					// CLS
@@ -44,7 +48,7 @@ public class CPU {
 			// 1xxx
 			() -> {
 				// JMP
-				pc = (short)(opcode & 0b0111);
+				pc = (short)(opcode & 0x0fff);
 			},
 			
 			// 2xxx
@@ -52,14 +56,14 @@ public class CPU {
 				// CALL addr
 				sp++;
 				stack[sp] = pc;
-				pc = (short)(opcode & 0b0111);
+				pc = (short)(opcode & 0x0fff);
 			},
 			
 			// 3xxx
 			() -> {
 				// SE Vx, byte
-				int reg = opcode & 0b0100;
-				short value = (short)(opcode & 0b0011);
+				int reg = opcode & 0x0f00;
+				short value = (short)(opcode & 0x00ff);
 				
 				if (registers[reg] == value) {
 					pc += 2;
@@ -69,8 +73,8 @@ public class CPU {
 			// 4xxx
 			() -> {
 				// SNE Vx, byte
-				int reg = opcode & 0b0100;
-				short value = (short)(opcode & 0b0011);
+				int reg = opcode & 0x0f00;
+				short value = (short)(opcode & 0x00ff);
 				
 				if (registers[reg] != value) {
 					pc += 2;
@@ -80,8 +84,8 @@ public class CPU {
 			// 5xxx
 			() -> {
 				// SE Vx, Vy
-				int regX = opcode & 0b0100;
-				int regY = opcode & 0b0010;
+				int regX = opcode & 0x0f00;
+				int regY = opcode & 0x00f0;
 				
 				if (registers[regX] == registers[regY]) {
 					pc += 2;
@@ -91,17 +95,77 @@ public class CPU {
 			// 6xxx
 			() -> {
 				// LD Vx, byte
-				int reg = opcode & 0b0100;
-				short val = (short)(opcode & 0x0011);
+				int reg = opcode & 0x0f00;
+				short val = (short)(opcode & 0x00ff);
 				registers[reg] = val;
 			},
 			
 			// 7xxx
 			() -> {
 				// ADD Vx, byte
-				int reg = opcode & 0b0100;
-				short val = (short)(opcode & 0x0011);
+				int reg = opcode & 0x0f00;
+				short val = (short)(opcode & 0x00ff);
 				registers[reg] += val;
+			},
+			
+			// 8xxx
+			() -> {
+				// TODO
+			},
+			
+			// 9xxx
+			() -> {
+				// SNE Vx, Vy
+				int regX = opcode & 0xf000;
+				int regY = opcode & 0x0f00;
+				
+				if (registers[regX] != registers[regY]) {
+					pc += 2;
+				}
+			},
+			
+			// Axxx
+			() -> {
+				// LD I, addr
+				iRegister = (short)(opcode & 0x0fff);
+			},
+			
+			// Bxxx
+			() -> {
+				// JP V0, addr
+				short offset = (short)(opcode & 0x0fff);
+				pc = (short)(registers[0] + offset);
+			},
+			
+			// Cxxx
+			() -> {
+				// RND Vx, byte
+				int reg = opcode & 0x0f00;
+				short val = (short)(opcode & 0x00ff);
+				short rand = (short)random.nextInt(256);
+				
+				registers[reg] = (short)(reg & val);
+			},
+			
+			// Dxxx
+			() -> {
+				// DRW Vx, Vy, nibble
+				int size = opcode & 0x000f;
+				int xPos = opcode & 0x0f00;
+				int yPos = opcode & 0x00f0;
+				
+				// TODO
+			},
+			
+			
+			// Exxx
+			() -> {
+				// TODO
+			},
+			
+			// Fxxx
+			() -> {
+				// TODO
 			}
 		};
 	}
@@ -127,7 +191,7 @@ public class CPU {
 		opcode += memory[pc + 1];
 		
 		int leading = (opcode >> 12) & 0xf;
-		opcodeHandlers[leading - 1].run();
+		opcodeHandlers[leading].run();
 		
 		pc += 2;
 	}
