@@ -15,14 +15,18 @@ public class Display {
 	private final int WIDTH = 640;
 	private final int HEIGHT = 480;
 	
-	private CPU cpu;
+	private float pixelWidth, pixelHeight;
 	private long window;
 	private boolean pixels[][];
 	private Map<Integer, Integer> keyMap;
+	private CPU cpu;
 	
 	public Display(CPU cpu) {
 		this.cpu = cpu;
 		cpu.setDisplay(this);
+		
+		pixelWidth = WIDTH / 64f;
+		pixelHeight = HEIGHT / 32f;
 		
 		GLFWErrorCallback.createPrint(System.err).set();
 		
@@ -75,7 +79,7 @@ public class Display {
 			int newBit = bit ^ curBit;
 			
 			
-			setPixel(x, y, newBit == 1);
+			setPixel(x + i, y, newBit == 1);
 			collision = (newBit == 0 && curBit == 1) || collision;
 			data >>= 1;
 		}
@@ -136,20 +140,22 @@ public class Display {
 	}
 	
 	private void setPixel(int x, int y, boolean state) {
+		x %= 64;
+		y %= 32;
 		pixels[x][y] = state;
 	}
 	
 	private void drawPixel(int x, int y) {
 		glColor3f(1f, 1f, 1f);
 		
-		float xPos = x * WIDTH / 64f;
-		float yPos = y * HEIGHT / 32f;
+		float xPos = x * pixelWidth;
+		float yPos = y * pixelHeight;
 		
 		glBegin(GL_QUADS);
 		glVertex2f(xPos, yPos);
-		glVertex2f(xPos + 64, yPos);
-		glVertex2f(xPos + 64, yPos + 32);
-		glVertex2f(xPos, yPos + 32);
+		glVertex2f(xPos + pixelWidth, yPos);
+		glVertex2f(xPos + pixelWidth, yPos + pixelHeight);
+		glVertex2f(xPos, yPos + pixelHeight);
 		glEnd();
 	}
 }
