@@ -8,6 +8,7 @@ public class CPU {
 	private short pc;
 	private short sp;
 	private short stack[];
+	@SuppressWarnings("unused")
 	private short iRegister, vfRegister;
 	private short memory[];
 	private short digitLocations[];
@@ -107,12 +108,12 @@ public class CPU {
 		opcodeHandlers = new OpcodeHandler[] {
 			// 0???
 			() -> {
-				int lastBit = opcode & 0x000f;
+				int type = opcode & 0x00ff;
 				
-				if (lastBit == 0x0) {
+				if (type == 0xe0) {
 					// CLS
 					display.clear();
-				} else if (lastBit == 0xe) {
+				} else if (type == 0xee) {
 					// RET
 					pc = stack[sp];
 					sp--;
@@ -385,7 +386,7 @@ public class CPU {
 	}
 	
 	private void loadROM() {
-		ROMReader reader = new ROMReader("roms/pong.ch8");
+		ROMReader reader = new ROMReader("roms/space-invaders.ch8");
 		
 		short data;
 		int i = 0x200;

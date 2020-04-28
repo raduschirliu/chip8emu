@@ -36,6 +36,7 @@ public class Display {
 	    }
 	
 	    GLFW.glfwDefaultWindowHints();
+	    GLFW.glfwWindowHint(GLFW.GLFW_RESIZABLE, GL_FALSE);
 	    
 	    window = GLFW.glfwCreateWindow(WIDTH, HEIGHT, "CHIP-8 Emulator", 0, 0);
 	    pixels = new boolean[64][32];
@@ -75,11 +76,12 @@ public class Display {
 		
 		for (int i = 0; i < 8; i++) {
 			int bit = data & 0b1;
-			int curBit = pixels[x][y] ? 1 : 0;
+			int curX = (x + 7 - i) % 64;
+			int curBit = pixels[curX][y] ? 1 : 0;
 			int newBit = bit ^ curBit;
 			
 			
-			setPixel(x + i, y, newBit == 1);
+			setPixel(x + 7 - i, y, newBit == 1);
 			collision = (newBit == 0 && curBit == 1) || collision;
 			data >>= 1;
 		}
