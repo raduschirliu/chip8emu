@@ -21,7 +21,7 @@ public class Display {
 		GLFWErrorCallback.createPrint(System.err).set();
 		
 	    if (!GLFW.glfwInit()) {
-	        System.err.println("wtf");
+	        System.err.println("GLFW failed to initialize");
 	        return;
 	    }
 	

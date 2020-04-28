@@ -65,7 +65,7 @@ public class CPU {
 			// 3xxx
 			() -> {
 				// SE Vx, byte
-				int reg = opcode & 0x0f00;
+				int reg = (opcode & 0x0f00) >> 8;
 				short value = (short)(opcode & 0x00ff);
 				
 				if (registers[reg] == value) {
@@ -76,7 +76,7 @@ public class CPU {
 			// 4xxx
 			() -> {
 				// SNE Vx, byte
-				int reg = opcode & 0x0f00;
+				int reg = (opcode & 0x0f00) >> 8;
 				short value = (short)(opcode & 0x00ff);
 				
 				if (registers[reg] != value) {
@@ -87,8 +87,8 @@ public class CPU {
 			// 5xxx
 			() -> {
 				// SE Vx, Vy
-				int regX = opcode & 0x0f00;
-				int regY = opcode & 0x00f0;
+				int regX = (opcode & 0x0f00) >> 8;
+				int regY = (opcode & 0x00f0) >> 4;
 				
 				if (registers[regX] == registers[regY]) {
 					pc += 2;
@@ -98,7 +98,7 @@ public class CPU {
 			// 6xxx
 			() -> {
 				// LD Vx, byte
-				int reg = opcode & 0x0f00;
+				int reg = (opcode & 0x0f00) >> 8;
 				short val = (short)(opcode & 0x00ff);
 				registers[reg] = val;
 			},
@@ -106,7 +106,7 @@ public class CPU {
 			// 7xxx
 			() -> {
 				// ADD Vx, byte
-				int reg = opcode & 0x0f00;
+				int reg = (opcode & 0x0f00) >> 8;
 				short val = (short)(opcode & 0x00ff);
 				registers[reg] += val;
 			},
@@ -119,8 +119,8 @@ public class CPU {
 			// 9xxx
 			() -> {
 				// SNE Vx, Vy
-				int regX = opcode & 0xf000;
-				int regY = opcode & 0x0f00;
+				int regX = (opcode & 0xf000) >> 12;
+				int regY = (opcode & 0x0f00) >> 8;
 				
 				if (registers[regX] != registers[regY]) {
 					pc += 2;
@@ -143,7 +143,7 @@ public class CPU {
 			// Cxxx
 			() -> {
 				// RND Vx, byte
-				int reg = opcode & 0x0f00;
+				int reg = (opcode & 0x0f00) >> 8;
 				short val = (short)(opcode & 0x00ff);
 				short rand = (short)random.nextInt(256);
 				
@@ -154,8 +154,8 @@ public class CPU {
 			() -> {
 				// DRW Vx, Vy, nibble
 				int size = opcode & 0x000f;
-				int xPos = opcode & 0x0f00;
-				int yPos = opcode & 0x00f0;
+				int xPos = (opcode & 0x0f00) >> 8;
+				int yPos = (opcode & 0x00f0) >> 4;
 				
 				// TODO
 			},
@@ -163,7 +163,7 @@ public class CPU {
 			
 			// Exxx
 			() -> {
-				int key = opcode & 0x0f00;
+				int key = (opcode & 0x0f00) >> 8;
 				int instr = opcode & 0x00ff;
 				
 				if (instr == 0x9e) {
@@ -210,6 +210,8 @@ public class CPU {
 			opcode = memory[pc];
 			opcode <<= 8;
 			opcode += memory[pc + 1];
+			
+			System.out.println(String.format("%x", opcode));
 			
 			int leading = (opcode >> 12) & 0xf;
 			opcodeHandlers[leading].run();
