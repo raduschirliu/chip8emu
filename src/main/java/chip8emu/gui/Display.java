@@ -56,7 +56,34 @@ public class Display {
 	    GLFW.glfwSetErrorCallback(null).free();
 	}
 	
-	public void run() {
+	public void clear() {
+		for (int i = 0; i < pixels.length; i++) {
+			for (int j = 0; j < pixels[i].length; j++) {
+				pixels[i][j] = false;
+			}
+		}
+	}
+	
+	public boolean drawByte(int x, int y, short data) {
+		boolean collision = false;
+		x %= 64;
+		y %= 32;
+		
+		for (int i = 0; i < 8; i++) {
+			int bit = data & 0b1;
+			int curBit = pixels[x][y] ? 1 : 0;
+			int newBit = bit ^ curBit;
+			
+			
+			setPixel(x, y, newBit == 1);
+			collision = (newBit == 0 && curBit == 1) || collision;
+			data >>= 1;
+		}
+		
+		return collision;
+	}
+	
+	private void run() {
 		GL.createCapabilities();
 		
 		glClearColor(0f, 0f, 0f, 0f);
@@ -108,36 +135,8 @@ public class Display {
 		keyMap.put(GLFW.GLFW_KEY_V, 0xf);
 	}
 	
-	public void clear() {
-		for (int i = 0; i < pixels.length; i++) {
-			for (int j = 0; j < pixels[i].length; j++) {
-				pixels[i][j] = false;
-			}
-		}
-	}
-	
-	public void setPixel(int x, int y, boolean state) {
-		x %= 65;
-		y %= 33;
-		
+	private void setPixel(int x, int y, boolean state) {
 		pixels[x][y] = state;
-	}
-	
-	public boolean drawByte(int x, int y, short data) {
-		boolean collision = false;
-		
-		for (int i = 0; i < 8; i++) {
-			int bit = data & 0b1;
-			int curBit = pixels[x][y] ? 1 : 0;
-			int newBit = bit ^ curBit;
-			
-			
-			setPixel(x, y, newBit == 1);
-			collision = (newBit == 0 && curBit == 1) || collision;
-			data >>= 1;
-		}
-		
-		return collision;
 	}
 	
 	private void drawPixel(int x, int y) {

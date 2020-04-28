@@ -285,8 +285,10 @@ public class CPU {
 			() -> {
 				// DRW Vx, Vy, nibble
 				int size = opcode & 0x000f;
-				int xPos = (opcode & 0x0f00) >> 8;
-				int yPos = (opcode & 0x00f0) >> 4;
+				int regX = (opcode & 0x0f00) >> 8;
+				int regY = (opcode & 0x00f0) >> 4;
+				int xPos = registers[regX];
+				int yPos = registers[regY];
 				boolean collision = false;
 				
 				for (int i = 0; i < size; i++) {
