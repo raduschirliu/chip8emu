@@ -75,7 +75,7 @@ public class Display {
 			for (int i = 0; i < pixels.length; i++) {
 				for (int j = 0; j < pixels[i].length; j++) {
 					if (pixels[i][j]) {
-						drawRect(i, j);
+						drawPixel(i, j);
 					}
 				}
 			}
@@ -140,17 +140,17 @@ public class Display {
 		return collision;
 	}
 	
-	private void drawRect(int x, int y) {
+	private void drawPixel(int x, int y) {
 		glColor3f(1f, 1f, 1f);
 		
 		float xPos = x * WIDTH / 64f;
-		float yPos = y * HEIGHT / 64f;
+		float yPos = y * HEIGHT / 32f;
 		
 		glBegin(GL_QUADS);
 		glVertex2f(xPos, yPos);
 		glVertex2f(xPos + 64, yPos);
-		glVertex2f(xPos + 64, yPos + 64);
-		glVertex2f(xPos, yPos + 64);
+		glVertex2f(xPos + 64, yPos + 32);
+		glVertex2f(xPos, yPos + 32);
 		glEnd();
 	}
 }
