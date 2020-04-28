@@ -117,7 +117,27 @@ public class Display {
 	}
 	
 	public void setPixel(int x, int y, boolean state) {
+		x %= 65;
+		y %= 33;
+		
 		pixels[x][y] = state;
+	}
+	
+	public boolean drawByte(int x, int y, short data) {
+		boolean collision = false;
+		
+		for (int i = 0; i < 8; i++) {
+			int bit = data & 0b1;
+			int curBit = pixels[x][y] ? 1 : 0;
+			int newBit = bit ^ curBit;
+			
+			
+			setPixel(x, y, newBit == 1);
+			collision = (newBit == 0 && curBit == 1) || collision;
+			data >>= 1;
+		}
+		
+		return collision;
 	}
 	
 	private void drawRect(int x, int y) {

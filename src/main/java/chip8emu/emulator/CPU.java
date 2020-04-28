@@ -10,11 +10,13 @@ public class CPU {
 	private short stack[];
 	private short iRegister, vfRegister;
 	private short memory[];
+	private short digitLocations[];
 	private short registers[];
 	private short opcode;
+	private int delayTimer, soundTimer;
+	private int keyRegister;
 	private boolean awaitingKey;
 	private boolean keys[];
-	private int delayTimer, soundTimer;
 	private OpcodeHandler opcodeHandlers[];
 	private Random random;
 	private Display display;
@@ -23,10 +25,11 @@ public class CPU {
 		random = new Random();
 		stack = new short[16];
 		memory = new short[4096];
+		digitLocations = new short[16];
 		registers = new short[16];
 		keys = new boolean[16];
 		awaitingKey = false;
-		pc = 200;
+		pc = 0x200;
 		sp = -1;
 		
 		loadSprites();
@@ -34,7 +37,15 @@ public class CPU {
 		loadROM();
 	}
 	
-	public void keyPressed(int keyCode, boolean pressed) {
+	public void keyPressed(int keyCode, boolean pressed) {		
+		if (pressed) {
+			awaitingKey = false;
+			
+			if (keyRegister >= 0) {
+				registers[keyRegister] = (short)keyCode;
+			}
+		}
+		
 		keys[keyCode] = pressed;
 	}
 	
@@ -44,7 +55,7 @@ public class CPU {
 			opcode <<= 8;
 			opcode += memory[pc + 1];
 			
-			System.out.println(String.format("%x", opcode));
+			System.out.println(String.format("PC: %x | %x", pc, opcode));
 			
 			int leading = (opcode >> 12) & 0xf;
 			opcodeHandlers[leading].run();
@@ -65,69 +76,41 @@ public class CPU {
 		this.display = display;
 	}
 	
-	private void saveSprite(int startAddress, short[] bytes) {
+	private void saveSprite(int digit, int startAddress, short[] bytes) {
+		digitLocations[digit] = (short)startAddress;
+		
 		for (int i = 0; i < bytes.length; i++) {
 			memory[startAddress + i] = bytes[i];
 		}
 	}
 	
 	private void loadSprites() {
-		// "0"
-		saveSprite(0, new short[] { 0xf0, 0x90, 0x90, 0x90, 0xf0 });
-		
-		// "1"
-		saveSprite(5, new short[] { 0x20, 0x60, 0x20, 0x20, 0x70 });
-		
-		// "2"
-		saveSprite(10, new short[] { 0xf0, 0x10, 0xf0, 0x80, 0xf0 });
-		
-		// "3"
-		saveSprite(15, new short[] { 0xf0, 0x10, 0xf0, 0x10, 0xf0 });
-		
-		// "4"
-		saveSprite(20, new short[] { 0x90, 0x90, 0xf0, 0x10, 0x10 });
-		
-		// "5"
-		saveSprite(25, new short[] { 0xf0, 0x80, 0xf0, 0x10, 0xf0 });
-		
-		// "6"
-		saveSprite(30, new short[] { 0xf0, 0x80, 0xf0, 0x90, 0xf0 });
-		
-		// "7"
-		saveSprite(35, new short[] { 0xf0, 0x10, 0x20, 0x40, 0x40 });
-		
-		// "8"
-		saveSprite(40, new short[] { 0xf0, 0x90, 0xf0, 0x90, 0xf0 });
-		
-		// "9"
-		saveSprite(45, new short[] { 0xf0, 0x90, 0xf0, 0x10, 0xf0 });
-		
-		// "A"
-		saveSprite(50, new short[] { 0xf0, 0x90, 0xf0, 0x90, 0x90 });
-		
-		// "B"
-		saveSprite(55, new short[] { 0xe0, 0x90, 0xe0, 0x90, 0xe0 });
-		
-		// "C"
-		saveSprite(60, new short[] { 0xf0, 0x80, 0x80, 0x80, 0xf0 });
-		
-		// "D"
-		saveSprite(65, new short[] { 0xe0, 0x90, 0x90, 0x90, 0xe0 });
-		
-		// "E"
-		saveSprite(70, new short[] { 0xf0, 0x80, 0xf0, 0x80, 0xf0 });
-		
-		// "F"
-		saveSprite(75, new short[] { 0xf0, 0x80, 0xf0, 0x80, 0x80 });
+		saveSprite(0x0, 0, new short[] { 0xf0, 0x90, 0x90, 0x90, 0xf0 });
+		saveSprite(0x1, 5, new short[] { 0x20, 0x60, 0x20, 0x20, 0x70 });
+		saveSprite(0x2, 10, new short[] { 0xf0, 0x10, 0xf0, 0x80, 0xf0 });
+		saveSprite(0x3, 15, new short[] { 0xf0, 0x10, 0xf0, 0x10, 0xf0 });
+		saveSprite(0x4, 20, new short[] { 0x90, 0x90, 0xf0, 0x10, 0x10 });
+		saveSprite(0x5, 25, new short[] { 0xf0, 0x80, 0xf0, 0x10, 0xf0 });
+		saveSprite(0x6, 30, new short[] { 0xf0, 0x80, 0xf0, 0x90, 0xf0 });
+		saveSprite(0x7, 35, new short[] { 0xf0, 0x10, 0x20, 0x40, 0x40 });
+		saveSprite(0x8, 40, new short[] { 0xf0, 0x90, 0xf0, 0x90, 0xf0 });
+		saveSprite(0x9, 45, new short[] { 0xf0, 0x90, 0xf0, 0x10, 0xf0 });
+		saveSprite(0xa, 50, new short[] { 0xf0, 0x90, 0xf0, 0x90, 0x90 });
+		saveSprite(0xb, 55, new short[] { 0xe0, 0x90, 0xe0, 0x90, 0xe0 });
+		saveSprite(0xc, 60, new short[] { 0xf0, 0x80, 0x80, 0x80, 0xf0 });
+		saveSprite(0xd, 65, new short[] { 0xe0, 0x90, 0x90, 0x90, 0xe0 });
+		saveSprite(0xe, 70, new short[] { 0xf0, 0x80, 0xf0, 0x80, 0xf0 });
+		saveSprite(0xf, 75, new short[] { 0xf0, 0x80, 0xf0, 0x80, 0x80 });
 	}
 	
 	private void loadOpcodeHandlers() {
 		opcodeHandlers = new OpcodeHandler[] {
-			// 0xxx
+			// 0???
 			() -> {
 				int lastBit = opcode & 0x000f;
 				
 				if (lastBit == 0x0) {
+					// CLS
 					display.clear();
 				} else if (lastBit == 0xe) {
 					// RET
@@ -138,21 +121,23 @@ public class CPU {
 				}
 			},
 			
-			// 1xxx
+			// 1nnn
 			() -> {
 				// JMP
 				pc = (short)(opcode & 0x0fff);
+				pc -= 2;
 			},
 			
-			// 2xxx
+			// 2nnn
 			() -> {
 				// CALL addr
 				sp++;
 				stack[sp] = pc;
 				pc = (short)(opcode & 0x0fff);
+				pc -= 2;
 			},
 			
-			// 3xxx
+			// 3xkk
 			() -> {
 				// SE Vx, byte
 				int reg = (opcode & 0x0f00) >> 8;
@@ -163,7 +148,7 @@ public class CPU {
 				}
 			},
 			
-			// 4xxx
+			// 4xkk
 			() -> {
 				// SNE Vx, byte
 				int reg = (opcode & 0x0f00) >> 8;
@@ -174,7 +159,7 @@ public class CPU {
 				}
 			},
 			
-			// 5xxx
+			// 5xy0
 			() -> {
 				// SE Vx, Vy
 				int regX = (opcode & 0x0f00) >> 8;
@@ -185,7 +170,7 @@ public class CPU {
 				}
 			},
 			
-			// 6xxx
+			// 6xkk
 			() -> {
 				// LD Vx, byte
 				int reg = (opcode & 0x0f00) >> 8;
@@ -193,7 +178,7 @@ public class CPU {
 				registers[reg] = val;
 			},
 			
-			// 7xxx
+			// 7xkk
 			() -> {
 				// ADD Vx, byte
 				int reg = (opcode & 0x0f00) >> 8;
@@ -201,7 +186,7 @@ public class CPU {
 				registers[reg] += val;
 			},
 			
-			// 8xxx
+			// 8xy?
 			() -> {
 				int type = opcode & 0x000f;
 				int regX = (opcode & 0x0f00) >> 8;
@@ -261,7 +246,7 @@ public class CPU {
 				}
 			},
 			
-			// 9xxx
+			// 9xy0
 			() -> {
 				// SNE Vx, Vy
 				int regX = (opcode & 0xf000) >> 12;
@@ -272,44 +257,48 @@ public class CPU {
 				}
 			},
 			
-			// Axxx
+			// Annn
 			() -> {
 				// LD I, addr
 				iRegister = (short)(opcode & 0x0fff);
 			},
 			
-			// Bxxx
+			// Bnnn
 			() -> {
 				// JP V0, addr
 				short offset = (short)(opcode & 0x0fff);
 				pc = (short)(registers[0] + offset);
+				pc -= 2;
 			},
 			
-			// Cxxx
+			// Cxkk
 			() -> {
 				// RND Vx, byte
 				int reg = (opcode & 0x0f00) >> 8;
 				short val = (short)(opcode & 0x00ff);
 				short rand = (short)random.nextInt(256);
 				
-				registers[reg] = (short)(reg & val);
+				registers[reg] = (short)(rand & val);
 			},
 			
-			// Dxxx
+			// Dxyn
 			() -> {
 				// DRW Vx, Vy, nibble
 				int size = opcode & 0x000f;
 				int xPos = (opcode & 0x0f00) >> 8;
 				int yPos = (opcode & 0x00f0) >> 4;
+				boolean collision = false;
 				
-				// TODO
 				for (int i = 0; i < size; i++) {
 					short data = memory[iRegister + i];
+					collision = display.drawByte(xPos, yPos + i, data) || collision;
 				}
+				
+				vfRegister = (short)(collision ? 1 : 0);
 			},
 			
 			
-			// Exxx
+			// Ex??
 			() -> {
 				int key = (opcode & 0x0f00) >> 8;
 				int instr = opcode & 0x00ff;
@@ -329,7 +318,7 @@ public class CPU {
 				}
 			},
 			
-			// Fxxx
+			// Fx??
 			() -> {
 				int reg = (opcode & 0x0f00) >> 8;
 				int type = opcode & 0x00ff;
@@ -341,7 +330,8 @@ public class CPU {
 					break;
 				case 0x0a:
 					// LD Vx, k
-					// TODO
+					awaitingKey = true;
+					keyRegister = reg;
 					break;
 				case 0x15:
 					// LD DT, Vx
@@ -357,19 +347,32 @@ public class CPU {
 					break;
 				case 0x29:
 					// LD F, Vx
-					// TODO
+					iRegister = digitLocations[registers[reg]];
 					break;
 				case 0x33:
 					// LD B, Vx
-					// TODO
+					int hundredsDigit = registers[reg] / 100;
+					memory[iRegister] = (short)Integer.parseInt(Integer.toBinaryString(hundredsDigit));
+					
+					int tensDigit = registers[reg] / 10 % 10;
+					memory[iRegister] = (short)Integer.parseInt(Integer.toBinaryString(tensDigit));
+					
+					int onesDigit = registers[reg] % 10;
+					memory[iRegister] = (short)Integer.parseInt(Integer.toBinaryString(onesDigit));
 					break;
 				case 0x55:
 					// LD [I], Vx
-					// TODO
+					for (int i = 0; i < registers.length; i++) {
+						memory[iRegister + i] = registers[i];
+					}
+					
 					break;
 				case 0x65:
 					// LD Vx, [I]
-					// TODO
+					for (int i = 0; i < registers.length; i++) {
+						registers[i] = memory[iRegister + i];
+					}
+					
 					break;
 				default:
 					System.err.println(String.format("Unknown opcode: %x", opcode));
@@ -383,7 +386,7 @@ public class CPU {
 		ROMReader reader = new ROMReader("roms/pong.ch8");
 		
 		short data;
-		int i = 200;
+		int i = 0x200;
 		
 		while ((data = reader.nextByte()) != -1) {
 			memory[i] = data;
