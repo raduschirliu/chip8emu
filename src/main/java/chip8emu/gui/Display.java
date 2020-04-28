@@ -7,12 +7,17 @@ import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.glfw.GLFWKeyCallback;
 import org.lwjgl.opengl.GL;
+import static org.lwjgl.opengl.GL11.*;
 
 import chip8emu.emulator.CPU;
 
 public class Display {
+	private final int WIDTH = 640;
+	private final int HEIGHT = 480;
+	
 	private CPU cpu;
 	private long window;
+	private boolean pixels[][];
 	private Map<Integer, Integer> keyMap;
 	
 	public Display(CPU cpu) {
@@ -26,13 +31,12 @@ public class Display {
 	    }
 	
 	    GLFW.glfwDefaultWindowHints();
+	    GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_DEBUG_CONTEXT, GLFW.GLFW_TRUE);
 	    
-	    window = GLFW.glfwCreateWindow(640, 480, "CHIP-8 Emulator", 0, 0);
-	    GLFW.glfwMakeContextCurrent(window);
-	    GLFW.glfwSwapInterval(1);
-	    GLFW.glfwShowWindow(window);
-	    
+	    window = GLFW.glfwCreateWindow(WIDTH, HEIGHT, "CHIP-8 Emulator", 0, 0);
+	    pixels = new boolean[64][32];
 	    createKeyMaps();
+	    
 	    GLFW.glfwSetKeyCallback(window, GLFWKeyCallback.create((window, key, scanCode, action, mods) -> {
 	    	if (action == GLFW.GLFW_PRESS || action == GLFW.GLFW_RELEASE) {
 	    		if (keyMap.containsKey(key)) {
@@ -41,16 +45,31 @@ public class Display {
 	    	}
 	    }));
 	    
+	    GLFW.glfwMakeContextCurrent(window);
+	    GLFW.glfwSwapInterval(1);
+	    GLFW.glfwShowWindow(window);
+	    
 	    run();
+	    
+	    GLFW.glfwDestroyWindow(window);
+	    GLFW.glfwTerminate();
+	    GLFW.glfwSetErrorCallback(null).free();
 	}
 	
 	public void run() {
 		GL.createCapabilities();
 		
+		glClearColor(0f, 0f, 0f, 0f);
+		
 		while (!GLFW.glfwWindowShouldClose(window)) {
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			GLFW.glfwPollEvents();
+			glLoadIdentity();
+			
 			cpu.step();
+			drawRect(200, 200);
+			
 			GLFW.glfwSwapBuffers(window);
-	        GLFW.glfwPollEvents();
 	    }
 	}
 	
@@ -76,5 +95,23 @@ public class Display {
 		keyMap.put(GLFW.GLFW_KEY_X, 0x0);
 		keyMap.put(GLFW.GLFW_KEY_C, 0xb);
 		keyMap.put(GLFW.GLFW_KEY_V, 0xf);
+	}
+	
+	public void setPixel(int x, int y, boolean state) {
+		pixels[x][y] = state;
+	}
+	
+	private void drawRect(int x, int y) {
+		glColor3f(1f, 1f, 1f);
+		
+		int w = 100;
+		int h = 100;
+		
+		glBegin(GL_QUADS);
+		glVertex2f(x, y);
+		glVertex2f(x + w, y);
+		glVertex2f(x + w, y + h);
+		glVertex2f(x, y + h);
+		glEnd();
 	}
 }

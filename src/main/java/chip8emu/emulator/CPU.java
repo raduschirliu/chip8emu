@@ -26,7 +26,7 @@ public class CPU {
 		keys = new boolean[16];
 		awaitingKey = false;
 		pc = 200;
-		sp = 0;
+		sp = -1;
 		
 		loadOpcodeHandlers();
 		loadROM();
