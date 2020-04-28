@@ -22,6 +22,7 @@ public class Display {
 	
 	public Display(CPU cpu) {
 		this.cpu = cpu;
+		cpu.setDisplay(this);
 		
 		GLFWErrorCallback.createPrint(System.err).set();
 		
@@ -31,7 +32,6 @@ public class Display {
 	    }
 	
 	    GLFW.glfwDefaultWindowHints();
-	    GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_DEBUG_CONTEXT, GLFW.GLFW_TRUE);
 	    
 	    window = GLFW.glfwCreateWindow(WIDTH, HEIGHT, "CHIP-8 Emulator", 0, 0);
 	    pixels = new boolean[64][32];
@@ -60,6 +60,10 @@ public class Display {
 		GL.createCapabilities();
 		
 		glClearColor(0f, 0f, 0f, 0f);
+		glMatrixMode(GL_PROJECTION);
+		glOrtho(0, WIDTH, HEIGHT, 0, 1, -1);
+		glMatrixMode(GL_MODELVIEW);
+		glDisable(GL_TEXTURE_2D);
 		
 		while (!GLFW.glfwWindowShouldClose(window)) {
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -67,7 +71,14 @@ public class Display {
 			glLoadIdentity();
 			
 			cpu.step();
-			drawRect(200, 200);
+			
+			for (int i = 0; i < pixels.length; i++) {
+				for (int j = 0; j < pixels[i].length; j++) {
+					if (pixels[i][j]) {
+						drawRect(i, j);
+					}
+				}
+			}
 			
 			GLFW.glfwSwapBuffers(window);
 	    }
@@ -97,6 +108,14 @@ public class Display {
 		keyMap.put(GLFW.GLFW_KEY_V, 0xf);
 	}
 	
+	public void clear() {
+		for (int i = 0; i < pixels.length; i++) {
+			for (int j = 0; j < pixels[i].length; j++) {
+				pixels[i][j] = false;
+			}
+		}
+	}
+	
 	public void setPixel(int x, int y, boolean state) {
 		pixels[x][y] = state;
 	}
@@ -104,14 +123,14 @@ public class Display {
 	private void drawRect(int x, int y) {
 		glColor3f(1f, 1f, 1f);
 		
-		int w = 100;
-		int h = 100;
+		float xPos = x * WIDTH / 64f;
+		float yPos = y * HEIGHT / 64f;
 		
 		glBegin(GL_QUADS);
-		glVertex2f(x, y);
-		glVertex2f(x + w, y);
-		glVertex2f(x + w, y + h);
-		glVertex2f(x, y + h);
+		glVertex2f(xPos, yPos);
+		glVertex2f(xPos + 64, yPos);
+		glVertex2f(xPos + 64, yPos + 64);
+		glVertex2f(xPos, yPos + 64);
 		glEnd();
 	}
 }

@@ -2,6 +2,8 @@ package chip8emu.emulator;
 
 import java.util.Random;
 
+import chip8emu.gui.Display;
+
 public class CPU {
 	private short pc;
 	private short sp;
@@ -10,26 +12,113 @@ public class CPU {
 	private short memory[];
 	private short registers[];
 	private short opcode;
-	private boolean display[][];
 	private boolean awaitingKey;
 	private boolean keys[];
 	private int delayTimer, soundTimer;
 	private OpcodeHandler opcodeHandlers[];
 	private Random random;
+	private Display display;
 	
 	public CPU() {
 		random = new Random();
 		stack = new short[16];
 		memory = new short[4096];
 		registers = new short[16];
-		display = new boolean[64][32];
 		keys = new boolean[16];
 		awaitingKey = false;
 		pc = 200;
 		sp = -1;
 		
+		loadSprites();
 		loadOpcodeHandlers();
 		loadROM();
+	}
+	
+	public void keyPressed(int keyCode, boolean pressed) {
+		keys[keyCode] = pressed;
+	}
+	
+	public void step() {
+		if (!awaitingKey) {
+			opcode = memory[pc];
+			opcode <<= 8;
+			opcode += memory[pc + 1];
+			
+			System.out.println(String.format("%x", opcode));
+			
+			int leading = (opcode >> 12) & 0xf;
+			opcodeHandlers[leading].run();
+			
+			if (delayTimer > 0) {
+				delayTimer--;
+			}
+			
+			if (soundTimer > 0) {
+				soundTimer--;
+			}
+			
+			pc += 2;
+		}
+	}
+	
+	public void setDisplay(Display display) {
+		this.display = display;
+	}
+	
+	private void saveSprite(int startAddress, short[] bytes) {
+		for (int i = 0; i < bytes.length; i++) {
+			memory[startAddress + i] = bytes[i];
+		}
+	}
+	
+	private void loadSprites() {
+		// "0"
+		saveSprite(0, new short[] { 0xf0, 0x90, 0x90, 0x90, 0xf0 });
+		
+		// "1"
+		saveSprite(5, new short[] { 0x20, 0x60, 0x20, 0x20, 0x70 });
+		
+		// "2"
+		saveSprite(10, new short[] { 0xf0, 0x10, 0xf0, 0x80, 0xf0 });
+		
+		// "3"
+		saveSprite(15, new short[] { 0xf0, 0x10, 0xf0, 0x10, 0xf0 });
+		
+		// "4"
+		saveSprite(20, new short[] { 0x90, 0x90, 0xf0, 0x10, 0x10 });
+		
+		// "5"
+		saveSprite(25, new short[] { 0xf0, 0x80, 0xf0, 0x10, 0xf0 });
+		
+		// "6"
+		saveSprite(30, new short[] { 0xf0, 0x80, 0xf0, 0x90, 0xf0 });
+		
+		// "7"
+		saveSprite(35, new short[] { 0xf0, 0x10, 0x20, 0x40, 0x40 });
+		
+		// "8"
+		saveSprite(40, new short[] { 0xf0, 0x90, 0xf0, 0x90, 0xf0 });
+		
+		// "9"
+		saveSprite(45, new short[] { 0xf0, 0x90, 0xf0, 0x10, 0xf0 });
+		
+		// "A"
+		saveSprite(50, new short[] { 0xf0, 0x90, 0xf0, 0x90, 0x90 });
+		
+		// "B"
+		saveSprite(55, new short[] { 0xe0, 0x90, 0xe0, 0x90, 0xe0 });
+		
+		// "C"
+		saveSprite(60, new short[] { 0xf0, 0x80, 0x80, 0x80, 0xf0 });
+		
+		// "D"
+		saveSprite(65, new short[] { 0xe0, 0x90, 0x90, 0x90, 0xe0 });
+		
+		// "E"
+		saveSprite(70, new short[] { 0xf0, 0x80, 0xf0, 0x80, 0xf0 });
+		
+		// "F"
+		saveSprite(75, new short[] { 0xf0, 0x80, 0xf0, 0x80, 0x80 });
 	}
 	
 	private void loadOpcodeHandlers() {
@@ -39,12 +128,13 @@ public class CPU {
 				int lastBit = opcode & 0x000f;
 				
 				if (lastBit == 0x0) {
-					// CLS
-					// TODO
+					display.clear();
 				} else if (lastBit == 0xe) {
 					// RET
 					pc = stack[sp];
 					sp--;
+				} else {
+					System.err.println(String.format("Unknown opcode: %x", opcode));
 				}
 			},
 			
@@ -113,7 +203,62 @@ public class CPU {
 			
 			// 8xxx
 			() -> {
-				// TODO
+				int type = opcode & 0x000f;
+				int regX = (opcode & 0x0f00) >> 8;
+				int regY = (opcode & 0x00f0) >> 4;
+				
+				switch (type) {
+				case 0:
+					// LD Vx, Vy
+					registers[regX] = registers[regY];
+					break;
+				case 1:
+					// OR Vx, Vy
+					registers[regX] = (short)(registers[regX] | registers[regY]);
+					break;
+				case 2:
+					// AND Vx, Vy
+					registers[regX] = (short)(registers[regX] & registers[regY]);
+					break;
+				case 3:
+					// XOR Vx, Vy
+					registers[regX] = (short)(registers[regX] ^ registers[regY]);
+					break;
+				case 4:
+					// ADD Vx, Vy
+					int res = registers[regX] + registers[regY];
+					vfRegister = (short)(res > 255 ? 1 : 0);
+					
+					registers[regX] = (short)res;
+					break;
+				case 5:
+					// SUB Vx, Vy
+					vfRegister = (short)(registers[regX] > registers[regY] ? 1 : 0);
+					registers[regX] -= registers[regY];
+					break;
+				case 6:
+					// SHR Vx {, Vy }
+					int lsb = registers[regX] & 0b1;
+					vfRegister = (short)lsb;
+										
+					registers[regX] /= 2;
+					break;
+				case 7:
+					// SUBN Vx, Vy
+					vfRegister = (short)(registers[regY] > registers[regX] ? 1 : 0);
+					registers[regX] = (short)(registers[regY] - registers[regX]);
+					break;
+				case 0xe:
+					// SHL Vx {, Vy }
+					int msb = (registers[regX] >> 15);
+					vfRegister = (short)msb;
+					
+					registers[regX] *= 2;
+					break;
+				default:
+					System.err.println(String.format("Unknown opcode: %x", opcode));
+					break;
+				}
 			},
 			
 			// 9xxx
@@ -158,6 +303,9 @@ public class CPU {
 				int yPos = (opcode & 0x00f0) >> 4;
 				
 				// TODO
+				for (int i = 0; i < size; i++) {
+					short data = memory[iRegister + i];
+				}
 			},
 			
 			
@@ -176,12 +324,57 @@ public class CPU {
 					if (!keys[key]) {
 						pc += 2;
 					}
+				} else {
+					System.err.println(String.format("Unknown opcode: %x", opcode));
 				}
 			},
 			
 			// Fxxx
 			() -> {
-				// TODO
+				int reg = (opcode & 0x0f00) >> 8;
+				int type = opcode & 0x00ff;
+				
+				switch (type) {
+				case 0x07:
+					// LD Vx, DT
+					registers[reg] = (short)delayTimer;
+					break;
+				case 0x0a:
+					// LD Vx, k
+					// TODO
+					break;
+				case 0x15:
+					// LD DT, Vx
+					delayTimer = registers[reg];
+					break;
+				case 0x18:
+					// LD ST, Vx
+					soundTimer = registers[reg];
+					break;
+				case 0x1e:
+					// ADD I, Vx
+					iRegister += registers[reg];
+					break;
+				case 0x29:
+					// LD F, Vx
+					// TODO
+					break;
+				case 0x33:
+					// LD B, Vx
+					// TODO
+					break;
+				case 0x55:
+					// LD [I], Vx
+					// TODO
+					break;
+				case 0x65:
+					// LD Vx, [I]
+					// TODO
+					break;
+				default:
+					System.err.println(String.format("Unknown opcode: %x", opcode));
+					break;
+				}
 			}
 		};
 	}
@@ -199,24 +392,5 @@ public class CPU {
 		
 		reader.close();
 		System.out.println("Loaded ROM");
-	}
-	
-	public void keyPressed(int keyCode, boolean pressed) {
-		keys[keyCode] = pressed;
-	}
-	
-	public void step() {
-		if (!awaitingKey) {
-			opcode = memory[pc];
-			opcode <<= 8;
-			opcode += memory[pc + 1];
-			
-			System.out.println(String.format("%x", opcode));
-			
-			int leading = (opcode >> 12) & 0xf;
-			opcodeHandlers[leading].run();
-			
-			pc += 2;
-		}
 	}
 }
