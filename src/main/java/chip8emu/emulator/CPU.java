@@ -38,12 +38,13 @@ public class CPU {
 		loadROM();
 	}
 	
-	public void keyPressed(int keyCode, boolean pressed) {		
+	public void keyPressed(int keyCode, boolean pressed) {
 		if (pressed) {
 			awaitingKey = false;
 			
 			if (keyRegister >= 0) {
 				registers[keyRegister] = (short)keyCode;
+				keyRegister = -1;
 			}
 		}
 		
@@ -386,7 +387,7 @@ public class CPU {
 	}
 	
 	private void loadROM() {
-		ROMReader reader = new ROMReader("roms/space-invaders.ch8");
+		ROMReader reader = new ROMReader("roms/pong.ch8");
 		
 		short data;
 		int i = 0x200;
