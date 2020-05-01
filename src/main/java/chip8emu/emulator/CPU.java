@@ -19,6 +19,7 @@ public class CPU {
 	private boolean keys[];
 	private OpcodeHandler opcodeHandlers[];
 	private Random random;
+	private ROM activeROM;
 	private Display display;
 	
 	public CPU() {
@@ -34,7 +35,6 @@ public class CPU {
 		
 		loadSprites();
 		loadOpcodeHandlers();
-		loadROM();
 	}
 	
 	public void keyPressed(int keyCode, boolean pressed) {
@@ -390,18 +390,18 @@ public class CPU {
 		};
 	}
 	
-	private void loadROM() {
-		ROM rom = new ROM("roms/pong2.ch8");
+	public void loadROM(String filePath) {
+		activeROM = new ROM(filePath);
 		
 		short data;
 		int i = 0x200;
 		
-		while ((data = rom.nextByte()) != -1) {
+		while ((data = activeROM.nextByte()) != -1) {
 			memory[i] = data;
 			i++;
 		}
 		
-		rom.close();
-		System.out.println("Loaded ROM");
+		activeROM.close();
+		System.out.println("Loaded ROM: " + activeROM.getFilePath());
 	}
 }
