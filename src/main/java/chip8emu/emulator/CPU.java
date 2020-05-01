@@ -57,7 +57,7 @@ public class CPU {
 			opcode <<= 8;
 			opcode += memory[pc + 1];
 			
-			System.out.println(String.format("PC: %x | %x", pc, opcode));
+//			System.out.println(String.format("PC: %x | %x", pc, opcode));
 			
 			int leading = (opcode >> 12) & 0xf;
 			opcodeHandlers[leading].run();
@@ -304,8 +304,13 @@ public class CPU {
 			
 			// Ex??
 			() -> {
-				int key = (opcode & 0x0f00) >> 8;
+				int reg = (opcode & 0x0f00) >> 8;
 				int instr = opcode & 0x00ff;
+				int key = registers[reg];
+				
+				if (key > 15) {
+					return;
+				}
 				
 				if (instr == 0x9e) {
 					// SKP Vx
@@ -313,7 +318,7 @@ public class CPU {
 						pc += 2;
 					}
 				} else if (instr == 0xa1) {
-					// LD Vx, DT
+					// SKNP Vx
 					if (!keys[key]) {
 						pc += 2;
 					}
@@ -387,17 +392,17 @@ public class CPU {
 	}
 	
 	private void loadROM() {
-		ROMReader reader = new ROMReader("roms/pong.ch8");
+		ROM rom = new ROM("roms/space-invaders.ch8");
 		
 		short data;
 		int i = 0x200;
 		
-		while ((data = reader.nextByte()) != -1) {
+		while ((data = rom.nextByte()) != -1) {
 			memory[i] = data;
 			i++;
 		}
 		
-		reader.close();
+		rom.close();
 		System.out.println("Loaded ROM");
 	}
 }

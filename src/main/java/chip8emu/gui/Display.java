@@ -15,6 +15,7 @@ public class Display {
 	private final int WIDTH = 640;
 	private final int HEIGHT = 480;
 	
+	private int frames, lastCalc;
 	private float pixelWidth, pixelHeight;
 	private long window;
 	private boolean pixels[][];
