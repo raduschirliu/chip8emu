@@ -8,8 +8,7 @@ public class CPU {
 	private short pc;
 	private short sp;
 	private short stack[];
-	@SuppressWarnings("unused")
-	private short iRegister, vfRegister;
+	private short iRegister;
 	private short memory[];
 	private short digitLocations[];
 	private short registers[];
@@ -214,31 +213,31 @@ public class CPU {
 				case 4:
 					// ADD Vx, Vy
 					int res = registers[regX] + registers[regY];
-					vfRegister = (short)(res > 255 ? 1 : 0);
+					registers[15] = (short)(res > 255 ? 1 : 0);
 					
 					registers[regX] = (short)res;
 					break;
 				case 5:
 					// SUB Vx, Vy
-					vfRegister = (short)(registers[regX] > registers[regY] ? 1 : 0);
+					registers[15] = (short)(registers[regX] > registers[regY] ? 1 : 0);
 					registers[regX] -= registers[regY];
 					break;
 				case 6:
 					// SHR Vx {, Vy }
 					int lsb = registers[regX] & 0b1;
-					vfRegister = (short)lsb;
+					registers[15] = (short)lsb;
 										
 					registers[regX] /= 2;
 					break;
 				case 7:
 					// SUBN Vx, Vy
-					vfRegister = (short)(registers[regY] > registers[regX] ? 1 : 0);
+					registers[15] = (short)(registers[regY] > registers[regX] ? 1 : 0);
 					registers[regX] = (short)(registers[regY] - registers[regX]);
 					break;
 				case 0xe:
 					// SHL Vx {, Vy }
 					int msb = (registers[regX] >> 15);
-					vfRegister = (short)msb;
+					registers[15] = (short)msb;
 					
 					registers[regX] *= 2;
 					break;
@@ -298,7 +297,7 @@ public class CPU {
 					collision = display.drawByte(xPos, yPos + i, data) || collision;
 				}
 				
-				vfRegister = (short)(collision ? 1 : 0);
+				registers[15] = (short)(collision ? 1 : 0);
 			},
 			
 			
@@ -392,7 +391,7 @@ public class CPU {
 	}
 	
 	private void loadROM() {
-		ROM rom = new ROM("roms/space-invaders.ch8");
+		ROM rom = new ROM("roms/pong2.ch8");
 		
 		short data;
 		int i = 0x200;
