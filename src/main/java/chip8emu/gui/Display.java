@@ -15,7 +15,7 @@ public class Display {
 	private final int WIDTH = 640;
 	private final int HEIGHT = 480;
 	
-	private int frames, lastCalc;
+	private long frames, lastCalc;
 	private float pixelWidth, pixelHeight;
 	private long window;
 	private boolean pixels[][];
@@ -98,6 +98,8 @@ public class Display {
 		glOrtho(0, WIDTH, HEIGHT, 0, 1, -1);
 		glMatrixMode(GL_MODELVIEW);
 		glDisable(GL_TEXTURE_2D);
+		frames = 0;
+		lastCalc = System.currentTimeMillis();
 		
 		while (!GLFW.glfwWindowShouldClose(window)) {
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -112,6 +114,13 @@ public class Display {
 						drawPixel(i, j);
 					}
 				}
+			}
+			
+			frames++;
+			
+			if (System.currentTimeMillis() >= lastCalc + 1000) {
+				frames = 0;
+				lastCalc = System.currentTimeMillis();
 			}
 			
 			GLFW.glfwSwapBuffers(window);
