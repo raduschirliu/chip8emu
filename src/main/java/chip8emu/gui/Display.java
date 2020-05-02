@@ -159,8 +159,10 @@ public class Display {
 			GLFW.glfwPollEvents();
 			glLoadIdentity();
 			
-			cpu.step();
-			
+			if (cpu.getRunning()) {
+				cpu.step();
+			}
+				
 			for (int i = 0; i < pixels.length; i++) {
 				for (int j = 0; j < pixels[i].length; j++) {
 					if (pixels[i][j]) {

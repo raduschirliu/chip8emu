@@ -18,6 +18,7 @@ public class CPU {
 	private int keyRegister;
 	private boolean awaitingKey;
 	private boolean keys[];
+	private boolean running;
 	private OpcodeHandler opcodeHandlers[];
 	private Random random;
 	private ROM activeROM;
@@ -31,6 +32,7 @@ public class CPU {
 		registers = new short[16];
 		keys = new boolean[16];
 		awaitingKey = false;
+		running = true;
 		pc = 0x200;
 		sp = -1;
 		
@@ -101,8 +103,20 @@ public class CPU {
 		}
 	}
 	
+	public void toggleRunning() {
+		running = !running;
+	}
+	
+	public boolean getRunning() {
+		return running;
+	}
+	
 	public void setDisplay(Display display) {
 		this.display = display;
+	}
+	
+	public short getOpcode() {
+		return opcode;
 	}
 	
 	public short getPC() {
