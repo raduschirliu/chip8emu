@@ -38,6 +38,19 @@ public class CPU {
 		loadOpcodeHandlers();
 	}
 	
+	public void reset() {
+		stack = new short[32];
+		registers = new short[16];
+		keys = new boolean[16];
+		
+		for (int i = 0x200; i < memory.length; i++) {
+			memory[i] = 0;
+		}
+		
+		pc = 0x200;
+		sp = -1;
+	}
+	
 	public void loadROM(String filePath) {
 		activeROM = new ROM(filePath);
 		
