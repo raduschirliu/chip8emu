@@ -20,7 +20,6 @@ public class DebuggerWindow extends JFrame {
 	private JLabel fpsLabel, pcLabel, spLabel, opcodeLabel, dtLabel, stLabel;
 	private JPanel topPanel;
 	private JTabbedPane tabs;
-	private RegisterPanel regPanel;
 	private CPU cpu;
 	private Display display;
 	
@@ -115,11 +114,9 @@ public class DebuggerWindow extends JFrame {
 	private void initTabs() {
 		tabs = new JTabbedPane();
 		
-		regPanel = new RegisterPanel(cpu);
-		tabs.add("Registers", regPanel);
-		
-		tabs.add("Stack", new JPanel());
-		tabs.add("Memory", new JPanel());
+		tabs.add("Registers", new RegisterPanel(cpu));
+		tabs.add("Stack", new StackPanel(cpu));
+		tabs.add("Memory", new MemoryPanel(cpu));
 		tabs.add("Input", new JPanel());
 		
 		getContentPane().add(tabs, BorderLayout.CENTER);
