@@ -1,5 +1,6 @@
 package chip8emu.emulator;
 
+import java.awt.Toolkit;
 import java.util.Random;
 
 import chip8emu.gui.Display;
@@ -24,7 +25,7 @@ public class CPU {
 	
 	public CPU() {
 		random = new Random();
-		stack = new short[16];
+		stack = new short[32];
 		memory = new short[4096];
 		digitLocations = new short[16];
 		registers = new short[16];
@@ -35,6 +36,21 @@ public class CPU {
 		
 		loadSprites();
 		loadOpcodeHandlers();
+	}
+	
+	public void loadROM(String filePath) {
+		activeROM = new ROM(filePath);
+		
+		short data;
+		int i = 0x200;
+		
+		while ((data = activeROM.nextByte()) != -1) {
+			memory[i] = data;
+			i++;
+		}
+		
+		activeROM.close();
+		System.out.println("Loaded ROM: " + activeROM.getFilePath());
 	}
 	
 	public void keyPressed(int keyCode, boolean pressed) {
@@ -56,8 +72,6 @@ public class CPU {
 			opcode <<= 8;
 			opcode += memory[pc + 1];
 			
-//			System.out.println(String.format("PC: %x | %x", pc, opcode));
-			
 			int leading = (opcode >> 12) & 0xf;
 			opcodeHandlers[leading].run();
 			
@@ -67,6 +81,7 @@ public class CPU {
 			
 			if (soundTimer > 0) {
 				soundTimer--;
+				Toolkit.getDefaultToolkit().beep();
 			}
 			
 			pc += 2;
@@ -75,6 +90,38 @@ public class CPU {
 	
 	public void setDisplay(Display display) {
 		this.display = display;
+	}
+	
+	public short getPC() {
+		return pc;
+	}
+	
+	public short getSP() {
+		return sp;
+	}
+	
+	public short[] getRegisters() {
+		return registers;
+	}
+	
+	public short[] getMemory() {
+		return memory;
+	}
+	
+	public short[] getStack() {
+		return stack;
+	}
+	
+	public boolean[] getKeys() {
+		return keys;
+	}
+	
+	public int getDelayTimer() {
+		return delayTimer;
+	}
+	
+	public int getSoundTimer() {
+		return soundTimer;
 	}
 	
 	private void saveSprite(int digit, int startAddress, short[] bytes) {
@@ -388,20 +435,5 @@ public class CPU {
 				}
 			}
 		};
-	}
-	
-	public void loadROM(String filePath) {
-		activeROM = new ROM(filePath);
-		
-		short data;
-		int i = 0x200;
-		
-		while ((data = activeROM.nextByte()) != -1) {
-			memory[i] = data;
-			i++;
-		}
-		
-		activeROM.close();
-		System.out.println("Loaded ROM: " + activeROM.getFilePath());
 	}
 }

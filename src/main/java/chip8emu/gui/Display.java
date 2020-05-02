@@ -75,6 +75,9 @@ public class Display {
 		x %= 64;
 		y %= 32;
 		
+		x = Math.abs(x);
+		y = Math.abs(y);
+		
 		for (int i = 0; i < 8; i++) {
 			int bit = data & 0b1;
 			int curX = (x + 7 - i) % 64;
