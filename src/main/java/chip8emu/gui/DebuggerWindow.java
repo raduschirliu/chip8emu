@@ -117,7 +117,7 @@ public class DebuggerWindow extends JFrame {
 		tabs.add("Registers", new RegisterPanel(cpu));
 		tabs.add("Stack", new StackPanel(cpu));
 		tabs.add("Memory", new MemoryPanel(cpu));
-		tabs.add("Input", new JPanel());
+		tabs.add("Input", new InputPanel(cpu));
 		
 		getContentPane().add(tabs, BorderLayout.CENTER);
 	}

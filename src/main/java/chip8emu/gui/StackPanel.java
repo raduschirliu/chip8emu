@@ -22,7 +22,6 @@ public class StackPanel extends JPanel implements UpdatablePanel {
 	public StackPanel(CPU cpu) {
 		this.cpu = cpu;
 		
-		setPreferredSize(new Dimension(300, 300));
 		setLayout(new BorderLayout());
 		
 		String columns[] = { "Address", "Value (Hex)", "Value (Decimal)" };

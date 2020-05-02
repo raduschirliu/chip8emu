@@ -22,7 +22,6 @@ public class MemoryPanel extends JPanel implements UpdatablePanel {
 	public MemoryPanel(CPU cpu) {
 		this.cpu = cpu;
 		
-		setPreferredSize(new Dimension(300, 300));
 		setLayout(new BorderLayout());
 		
 		String columns[] = { "Address", "Value (Hex)", "Value (Decimal)" };
@@ -57,5 +56,8 @@ public class MemoryPanel extends JPanel implements UpdatablePanel {
 			tableModel.setValueAt(String.format("%x", mem[i]), i, 1);
 			tableModel.setValueAt(mem[i], i, 2);
 		}
+		
+		ListSelectionModel selectionModel = table.getSelectionModel();
+		selectionModel.setSelectionInterval(cpu.getPC(), cpu.getPC());
 	}
 }
