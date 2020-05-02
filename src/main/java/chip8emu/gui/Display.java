@@ -1,5 +1,25 @@
 package chip8emu.gui;
 
+import static org.lwjgl.opengl.GL11.GL_COLOR_BUFFER_BIT;
+import static org.lwjgl.opengl.GL11.GL_DEPTH_BUFFER_BIT;
+import static org.lwjgl.opengl.GL11.GL_FALSE;
+import static org.lwjgl.opengl.GL11.GL_MODELVIEW;
+import static org.lwjgl.opengl.GL11.GL_PROJECTION;
+import static org.lwjgl.opengl.GL11.GL_QUADS;
+import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
+import static org.lwjgl.opengl.GL11.glBegin;
+import static org.lwjgl.opengl.GL11.glClear;
+import static org.lwjgl.opengl.GL11.glClearColor;
+import static org.lwjgl.opengl.GL11.glColor3f;
+import static org.lwjgl.opengl.GL11.glDisable;
+import static org.lwjgl.opengl.GL11.glEnd;
+import static org.lwjgl.opengl.GL11.glLoadIdentity;
+import static org.lwjgl.opengl.GL11.glMatrixMode;
+import static org.lwjgl.opengl.GL11.glOrtho;
+import static org.lwjgl.opengl.GL11.glVertex2f;
+
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -7,7 +27,6 @@ import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.glfw.GLFWKeyCallback;
 import org.lwjgl.opengl.GL;
-import static org.lwjgl.opengl.GL11.*;
 
 import chip8emu.emulator.CPU;
 
@@ -15,17 +34,20 @@ public class Display {
 	private final int WIDTH = 640;
 	private final int HEIGHT = 480;
 	
-	private long frames, lastCalc;
+	private long fps, lastCalc;
 	private float pixelWidth, pixelHeight;
 	private long window;
 	private boolean pixels[][];
+	private boolean isDebuggerOpen;
 	private Map<Integer, Integer> keyMap;
 	private CPU cpu;
+	private DebuggerWindow debugger;
 	
 	public Display(CPU cpu) {
 		this.cpu = cpu;
 		cpu.setDisplay(this);
 		
+		isDebuggerOpen = false;
 		pixelWidth = WIDTH / 64f;
 		pixelHeight = HEIGHT / 32f;
 		
@@ -44,6 +66,10 @@ public class Display {
 	    createKeyMaps();
 	    
 	    GLFW.glfwSetKeyCallback(window, GLFWKeyCallback.create((window, key, scanCode, action, mods) -> {
+	    	if (key == GLFW.GLFW_KEY_GRAVE_ACCENT || action == GLFW.GLFW_PRESS) {
+	    		openDebugger();
+	    	}
+	    	
 	    	if (action == GLFW.GLFW_PRESS || action == GLFW.GLFW_RELEASE) {
 	    		if (keyMap.containsKey(key)) {
 	    			cpu.keyPressed(keyMap.get(key), action == GLFW.GLFW_PRESS);
@@ -57,9 +83,28 @@ public class Display {
 	    
 	    run();
 	    
+	    if (debugger != null) {
+	    	debugger.dispatchEvent(new WindowEvent(debugger, WindowEvent.WINDOW_CLOSING));
+	    }
+	    
 	    GLFW.glfwDestroyWindow(window);
 	    GLFW.glfwTerminate();
 	    GLFW.glfwSetErrorCallback(null).free();
+	}
+	
+	public void openDebugger() {
+		if (isDebuggerOpen) {
+			return;
+		}
+		
+		isDebuggerOpen = true;
+		debugger = new DebuggerWindow();
+		debugger.addWindowListener(new WindowAdapter() {
+			@Override
+			public void windowClosing(WindowEvent e) {
+				isDebuggerOpen = false;
+			}
+		});
 	}
 	
 	public void clear() {
@@ -93,6 +138,10 @@ public class Display {
 		return collision;
 	}
 	
+	public long getFPS() {
+		return fps;
+	}
+	
 	private void run() {
 		GL.createCapabilities();
 		
@@ -101,7 +150,7 @@ public class Display {
 		glOrtho(0, WIDTH, HEIGHT, 0, 1, -1);
 		glMatrixMode(GL_MODELVIEW);
 		glDisable(GL_TEXTURE_2D);
-		frames = 0;
+		fps = 0;
 		lastCalc = System.currentTimeMillis();
 		
 		while (!GLFW.glfwWindowShouldClose(window)) {
@@ -119,10 +168,10 @@ public class Display {
 				}
 			}
 			
-			frames++;
+			fps++;
 			
 			if (System.currentTimeMillis() >= lastCalc + 1000) {
-				frames = 0;
+				fps = 0;
 				lastCalc = System.currentTimeMillis();
 			}
 			
