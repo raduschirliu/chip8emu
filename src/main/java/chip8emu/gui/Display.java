@@ -34,7 +34,7 @@ public class Display {
 	private final int WIDTH = 640;
 	private final int HEIGHT = 480;
 	
-	private long fps, lastCalc;
+	private long fps, totalFrames, lastCalc;
 	private float pixelWidth, pixelHeight;
 	private long window;
 	private boolean pixels[][];
@@ -90,6 +90,7 @@ public class Display {
 	    GLFW.glfwDestroyWindow(window);
 	    GLFW.glfwTerminate();
 	    GLFW.glfwSetErrorCallback(null).free();
+	    System.exit(0);
 	}
 	
 	public void openDebugger() {
@@ -98,7 +99,7 @@ public class Display {
 		}
 		
 		isDebuggerOpen = true;
-		debugger = new DebuggerWindow();
+		debugger = new DebuggerWindow(cpu, this);
 		debugger.addWindowListener(new WindowAdapter() {
 			@Override
 			public void windowClosing(WindowEvent e) {
@@ -150,7 +151,7 @@ public class Display {
 		glOrtho(0, WIDTH, HEIGHT, 0, 1, -1);
 		glMatrixMode(GL_MODELVIEW);
 		glDisable(GL_TEXTURE_2D);
-		fps = 0;
+		totalFrames = 0;
 		lastCalc = System.currentTimeMillis();
 		
 		while (!GLFW.glfwWindowShouldClose(window)) {
@@ -168,11 +169,16 @@ public class Display {
 				}
 			}
 			
-			fps++;
+			totalFrames++;
 			
 			if (System.currentTimeMillis() >= lastCalc + 1000) {
-				fps = 0;
+				fps = totalFrames;
+				totalFrames = 0;
 				lastCalc = System.currentTimeMillis();
+			}
+			
+			if (debugger != null) {
+				debugger.update();
 			}
 			
 			GLFW.glfwSwapBuffers(window);
