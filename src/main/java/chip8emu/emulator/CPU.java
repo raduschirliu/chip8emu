@@ -250,7 +250,7 @@ public class CPU {
 				// LD Vx, byte
 				int reg = (opcode & 0x0f00) >> 8;
 				short val = (short)(opcode & 0x00ff);
-				registers[reg] = val;
+				registers[reg] = (short)(val % 256);
 			},
 			
 			// 7xkk
@@ -258,7 +258,7 @@ public class CPU {
 				// ADD Vx, byte
 				int reg = (opcode & 0x0f00) >> 8;
 				short val = (short)(opcode & 0x00ff);
-				registers[reg] += val;
+				registers[reg] = (short)((registers[reg] + val) % 256);
 			},
 			
 			// 8xy?
@@ -268,52 +268,56 @@ public class CPU {
 				int regY = (opcode & 0x00f0) >> 4;
 				
 				switch (type) {
-				case 0:
+				case 0x0:
 					// LD Vx, Vy
 					registers[regX] = registers[regY];
 					break;
-				case 1:
+				case 0x1:
 					// OR Vx, Vy
 					registers[regX] = (short)(registers[regX] | registers[regY]);
 					break;
-				case 2:
+				case 0x2:
 					// AND Vx, Vy
 					registers[regX] = (short)(registers[regX] & registers[regY]);
 					break;
-				case 3:
+				case 0x3:
 					// XOR Vx, Vy
 					registers[regX] = (short)(registers[regX] ^ registers[regY]);
 					break;
-				case 4:
+				case 0x4:
 					// ADD Vx, Vy
 					int res = registers[regX] + registers[regY];
 					registers[15] = (short)(res > 255 ? 1 : 0);
 					
-					registers[regX] = (short)res;
+					registers[regX] = (short)(res % 256);
 					break;
-				case 5:
+				case 0x5:
 					// SUB Vx, Vy
 					registers[15] = (short)(registers[regX] > registers[regY] ? 1 : 0);
-					registers[regX] -= registers[regY];
+					registers[regX] = (short)((registers[regX] - registers[regY]) % 256);
+					
+					if (registers[regX] < 0) {
+						registers[regX] = (short)(256 + registers[regX]);
+					}
 					break;
-				case 6:
+				case 0x6:
 					// SHR Vx {, Vy }
 					int lsb = registers[regX] & 0b1;
 					registers[15] = (short)lsb;
 										
 					registers[regX] /= 2;
 					break;
-				case 7:
+				case 0x7:
 					// SUBN Vx, Vy
 					registers[15] = (short)(registers[regY] > registers[regX] ? 1 : 0);
-					registers[regX] = (short)(registers[regY] - registers[regX]);
+					registers[regX] = (short)((registers[regY] - registers[regX]) % 256);
 					break;
 				case 0xe:
 					// SHL Vx {, Vy }
 					int msb = (registers[regX] >> 15);
 					registers[15] = (short)msb;
 					
-					registers[regX] *= 2;
+					registers[regX] = (short)((registers[regX] * 2) % 256);
 					break;
 				default:
 					System.err.println(String.format("Unknown opcode: %x", opcode));
@@ -324,8 +328,8 @@ public class CPU {
 			// 9xy0
 			() -> {
 				// SNE Vx, Vy
-				int regX = (opcode & 0xf000) >> 12;
-				int regY = (opcode & 0x0f00) >> 8;
+				int regX = (opcode & 0x0f00) >> 8;
+				int regY = (opcode & 0x00f0) >> 4;
 				
 				if (registers[regX] != registers[regY]) {
 					pc += 2;
@@ -404,6 +408,11 @@ public class CPU {
 			() -> {
 				int reg = (opcode & 0x0f00) >> 8;
 				int type = opcode & 0x00ff;
+				int maxReg = registers[reg];
+				
+				if (maxReg > 15) {
+					maxReg = 15;
+				}
 				
 				switch (type) {
 				case 0x07:
@@ -433,25 +442,22 @@ public class CPU {
 					break;
 				case 0x33:
 					// LD B, Vx
-					int hundredsDigit = registers[reg] / 100;
-					memory[iRegister] = (short)Integer.parseInt(Integer.toBinaryString(hundredsDigit));
+					memory[iRegister] = (short)(registers[reg] / 100);
+					memory[iRegister + 1] = (short)((registers[reg] / 10) % 10);
+					memory[iRegister + 2] = (short)(registers[reg] % 10);
 					
-					int tensDigit = registers[reg] / 10 % 10;
-					memory[iRegister] = (short)Integer.parseInt(Integer.toBinaryString(tensDigit));
-					
-					int onesDigit = registers[reg] % 10;
-					memory[iRegister] = (short)Integer.parseInt(Integer.toBinaryString(onesDigit));
+//					System.out.println(registers[reg] + " | " + memory[iRegister] + " " + memory[iRegister+1] + " " + memory[iRegister+2]);
 					break;
 				case 0x55:
 					// LD [I], Vx
-					for (int i = 0; i < registers.length; i++) {
+					for (int i = 0; i <= maxReg; i++) {
 						memory[iRegister + i] = registers[i];
 					}
 					
 					break;
 				case 0x65:
 					// LD Vx, [I]
-					for (int i = 0; i < registers.length; i++) {
+					for (int i = 0; i <= maxReg; i++) {
 						registers[i] = memory[iRegister + i];
 					}
 					
