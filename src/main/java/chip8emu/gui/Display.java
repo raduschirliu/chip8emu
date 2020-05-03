@@ -66,7 +66,7 @@ public class Display {
 	    createKeyMaps();
 	    
 	    GLFW.glfwSetKeyCallback(window, GLFWKeyCallback.create((window, key, scanCode, action, mods) -> {
-	    	if (key == GLFW.GLFW_KEY_GRAVE_ACCENT || action == GLFW.GLFW_PRESS) {
+	    	if (key == GLFW.GLFW_KEY_GRAVE_ACCENT && action == GLFW.GLFW_PRESS) {
 	    		openDebugger();
 	    	}
 	    	
