@@ -4,6 +4,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+import javax.swing.JOptionPane;
+
 public class ROM {
 	private String filePath;
 	private InputStream input;
@@ -14,7 +16,7 @@ public class ROM {
 		try {
 			input = new FileInputStream(filePath);
 		} catch (IOException e) {
-			e.printStackTrace();
+			JOptionPane.showMessageDialog(null, "File '" + filePath + "' does not exist", "Error", JOptionPane.OK_OPTION);
 		}
 	}
 	

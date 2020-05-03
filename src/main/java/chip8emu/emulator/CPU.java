@@ -28,7 +28,6 @@ public class CPU {
 		random = new Random();
 		running = true;
 		
-		reset();
 		loadOpcodeHandlers();
 	}
 	
@@ -44,9 +43,14 @@ public class CPU {
 		sp = -1;
 		
 		loadSprites();
+		
+		if (display != null) {
+			display.clear();
+		}
 	}
 	
 	public void loadROM(String filePath) {
+		reset();
 		activeROM = new ROM(filePath);
 		
 		short data;

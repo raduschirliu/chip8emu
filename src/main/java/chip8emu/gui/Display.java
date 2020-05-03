@@ -18,10 +18,14 @@ import static org.lwjgl.opengl.GL11.glMatrixMode;
 import static org.lwjgl.opengl.GL11.glOrtho;
 import static org.lwjgl.opengl.GL11.glVertex2f;
 
+import java.awt.FileDialog;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
+
+import javax.swing.JFrame;
 
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWErrorCallback;
@@ -71,6 +75,8 @@ public class Display {
 		    		openDebugger();
 		    	} else if (key == GLFW.GLFW_KEY_SPACE) {
 		    		cpu.toggleRunning();
+		    	} else if (key == GLFW.GLFW_KEY_TAB) {
+		    		showROMPicker();
 		    	}
 	    	}
 	    	
@@ -95,6 +101,17 @@ public class Display {
 	    GLFW.glfwTerminate();
 	    GLFW.glfwSetErrorCallback(null).free();
 	    System.exit(0);
+	}
+	
+	public void showROMPicker() {
+		FileDialog dialog = new FileDialog((JFrame)null, "Select a ROM to load");
+		dialog.setMode(FileDialog.LOAD);
+		dialog.setVisible(true);
+		File files[] = dialog.getFiles();
+		
+		if (files != null && files.length > 0) {
+			cpu.loadROM(files[0].getAbsolutePath());
+		}
 	}
 	
 	public void openDebugger() {
