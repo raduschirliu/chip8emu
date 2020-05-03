@@ -17,7 +17,7 @@ import chip8emu.emulator.CPU;
 public class DebuggerWindow extends JFrame {
 	private static final long serialVersionUID = 1L;
 	
-	private JLabel fpsLabel, pcLabel, spLabel, opcodeLabel, dtLabel, stLabel;
+	private JLabel fpsLabel, pcLabel, spLabel, iLabel, opcodeLabel, dtLabel, stLabel;
 	private JPanel topPanel;
 	private JTabbedPane tabs;
 	private CPU cpu;
@@ -42,6 +42,7 @@ public class DebuggerWindow extends JFrame {
 		fpsLabel.setText("FPS: " + display.getFPS());
 		pcLabel.setText(String.format("PC: %x", cpu.getPC()));
 		spLabel.setText("SP : " + cpu.getSP());
+		iLabel.setText("I : " + String.format("%x", cpu.getI()));
 		opcodeLabel.setText(String.format("Opcode: %x", cpu.getOpcode()));
 		dtLabel.setText("Delay timer: " + cpu.getDelayTimer());
 		stLabel.setText("Sound timer: " + cpu.getSoundTimer());
@@ -76,6 +77,10 @@ public class DebuggerWindow extends JFrame {
 		// SP Label
 		spLabel = new JLabel();
 		topLabels.add(spLabel);
+		
+		// I Label
+		iLabel = new JLabel();
+		topLabels.add(iLabel);
 	
 		// Opcode Label
 		opcodeLabel = new JLabel();

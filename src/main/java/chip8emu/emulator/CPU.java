@@ -26,31 +26,24 @@ public class CPU {
 	
 	public CPU() {
 		random = new Random();
-		stack = new short[32];
-		memory = new short[4096];
-		digitLocations = new short[16];
-		registers = new short[16];
-		keys = new boolean[16];
-		awaitingKey = false;
 		running = true;
-		pc = 0x200;
-		sp = -1;
 		
-		loadSprites();
+		reset();
 		loadOpcodeHandlers();
 	}
 	
 	public void reset() {
 		stack = new short[32];
 		registers = new short[16];
+		digitLocations = new short[16];
 		keys = new boolean[16];
-		
-		for (int i = 0x200; i < memory.length; i++) {
-			memory[i] = 0;
-		}
+		memory = new short[4096];
+		awaitingKey = false;
 		
 		pc = 0x200;
 		sp = -1;
+		
+		loadSprites();
 	}
 	
 	public void loadROM(String filePath) {
@@ -125,6 +118,10 @@ public class CPU {
 	
 	public short getSP() {
 		return sp;
+	}
+	
+	public short getI() {
+		return iRegister;
 	}
 	
 	public short[] getRegisters() {
@@ -408,11 +405,6 @@ public class CPU {
 			() -> {
 				int reg = (opcode & 0x0f00) >> 8;
 				int type = opcode & 0x00ff;
-				int maxReg = registers[reg];
-				
-				if (maxReg > 15) {
-					maxReg = 15;
-				}
 				
 				switch (type) {
 				case 0x07:
@@ -444,20 +436,18 @@ public class CPU {
 					// LD B, Vx
 					memory[iRegister] = (short)(registers[reg] / 100);
 					memory[iRegister + 1] = (short)((registers[reg] / 10) % 10);
-					memory[iRegister + 2] = (short)(registers[reg] % 10);
-					
-//					System.out.println(registers[reg] + " | " + memory[iRegister] + " " + memory[iRegister+1] + " " + memory[iRegister+2]);
+					memory[iRegister + 2] = (short)((registers[reg] % 100) % 10);
 					break;
 				case 0x55:
 					// LD [I], Vx
-					for (int i = 0; i <= maxReg; i++) {
+					for (int i = 0; i <= reg; i++) {
 						memory[iRegister + i] = registers[i];
 					}
 					
 					break;
 				case 0x65:
 					// LD Vx, [I]
-					for (int i = 0; i <= maxReg; i++) {
+					for (int i = 0; i <= reg; i++) {
 						registers[i] = memory[iRegister + i];
 					}
 					
