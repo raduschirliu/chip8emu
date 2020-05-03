@@ -101,7 +101,7 @@ public class DebuggerWindow extends JFrame {
 		topPanel.add(topButtons, BorderLayout.EAST);
 		
 		// Pause button
-		JButton pauseButton = new JButton("Pause");
+		JButton pauseButton = new JButton(cpu.getRunning() ? "Pause" : "Resume");
 		pauseButton.addActionListener((ActionEvent e) -> {
 			cpu.toggleRunning();
 			pauseButton.setText(cpu.getRunning() ? "Pause" : "Resume");
