@@ -1,6 +1,8 @@
 package chip8emu.gui;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 
 import javax.swing.BoxLayout;
@@ -17,7 +19,7 @@ import chip8emu.emulator.CPU;
 public class DebuggerWindow extends JFrame {
 	private static final long serialVersionUID = 1L;
 	
-	private JLabel fpsLabel, pcLabel, spLabel, iLabel, opcodeLabel, dtLabel, stLabel;
+	private JLabel fpsLabel, pcLabel, spLabel, iLabel, opcodeLabel, dtLabel, stLabel, romLabel;
 	private JPanel topPanel;
 	private JTabbedPane tabs;
 	private CPU cpu;
@@ -54,45 +56,56 @@ public class DebuggerWindow extends JFrame {
 		}
 	}
 	
+	public void romUpdated() {
+		romLabel.setText("ROM: " + cpu.getActiveROM().getFileName());
+	}
+	
 	private void initTopPanel() {
 		// Top panel
 		topPanel = new JPanel(new BorderLayout());
 		topPanel.setBorder(new EmptyBorder(0, 0, 10, 0));
 		getContentPane().add(topPanel, BorderLayout.NORTH);
 		
-		
+			
 		// Labels
 		JPanel topLabels = new JPanel();
-		topLabels.setLayout(new BoxLayout(topLabels, BoxLayout.Y_AXIS));
+		GridLayout labelLayout = new GridLayout(4, 2);
+		labelLayout.setHgap(60);
+		topLabels.setLayout(labelLayout);
 		topPanel.add(topLabels, BorderLayout.WEST);
-		
-		// FPS Label
-		fpsLabel = new JLabel();
-		topLabels.add(fpsLabel);
 		
 		// PC Label
 		pcLabel = new JLabel();
 		topLabels.add(pcLabel);
 		
+		// FPS Label
+		fpsLabel = new JLabel();
+		topLabels.add(fpsLabel);
+		
 		// SP Label
 		spLabel = new JLabel();
 		topLabels.add(spLabel);
-		
-		// I Label
-		iLabel = new JLabel();
-		topLabels.add(iLabel);
-	
-		// Opcode Label
-		opcodeLabel = new JLabel();
-		topLabels.add(opcodeLabel);
 		
 		// Delay timer Label
 		dtLabel = new JLabel();
 		topLabels.add(dtLabel);
 		
+		// I Label
+		iLabel = new JLabel();
+		topLabels.add(iLabel);
+		
 		// Sound timer Label
 		stLabel = new JLabel();
 		topLabels.add(stLabel);
+		
+		// Opcode Label
+		opcodeLabel = new JLabel();
+		topLabels.add(opcodeLabel);
+		
+		// ROM Label
+		romLabel = new JLabel();
+		topLabels.add(romLabel);
+		romUpdated();
 		
 		
 		// Buttons

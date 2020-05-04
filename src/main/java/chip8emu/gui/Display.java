@@ -111,6 +111,10 @@ public class Display {
 		
 		if (files != null && files.length > 0) {
 			cpu.loadROM(files[0].getAbsolutePath());
+			
+			if (debugger != null) {
+				debugger.romUpdated();
+			}
 		}
 	}
 	

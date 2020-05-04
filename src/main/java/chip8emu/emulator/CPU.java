@@ -152,6 +152,10 @@ public class CPU {
 		return soundTimer;
 	}
 	
+	public ROM getActiveROM() {
+		return activeROM;
+	}
+	
 	private void saveSprite(int digit, int startAddress, short[] bytes) {
 		digitLocations[digit] = (short)startAddress;
 		
