@@ -71,7 +71,9 @@ public class Display {
 	    
 	    GLFW.glfwSetKeyCallback(window, GLFWKeyCallback.create((window, key, scanCode, action, mods) -> {
 	    	if (action == GLFW.GLFW_PRESS) {
-		    	if (key == GLFW.GLFW_KEY_GRAVE_ACCENT) {
+	    		if (key == GLFW.GLFW_KEY_ESCAPE) {
+	    			GLFW.glfwSetWindowShouldClose(window, true);
+	    		} else if (key == GLFW.GLFW_KEY_GRAVE_ACCENT) {
 		    		openDebugger();
 		    	} else if (key == GLFW.GLFW_KEY_SPACE) {
 		    		cpu.toggleRunning();
