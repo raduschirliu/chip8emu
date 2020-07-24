@@ -76,7 +76,11 @@ public class Display {
 	    		} else if (key == GLFW.GLFW_KEY_GRAVE_ACCENT) {
 		    		openDebugger();
 		    	} else if (key == GLFW.GLFW_KEY_SPACE) {
-		    		cpu.toggleRunning();
+		    		if (cpu.getActiveROM() != null) {
+		    			cpu.toggleRunning();
+		    		} else {
+		    			System.out.println("Please load a ROM before opening the debugger");
+		    		}
 		    	} else if (key == GLFW.GLFW_KEY_TAB) {
 		    		showROMPicker();
 		    	}

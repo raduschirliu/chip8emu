@@ -79,7 +79,7 @@ public class CPU {
 	}
 	
 	public void step() {
-		if (!awaitingKey) {
+		if (!awaitingKey && activeROM != null) {
 			opcode = memory[pc];
 			opcode <<= 8;
 			opcode += memory[pc + 1];

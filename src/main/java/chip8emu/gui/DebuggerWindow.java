@@ -52,12 +52,16 @@ public class DebuggerWindow extends JFrame {
 		try {
 			((UpdatablePanel)tabs.getSelectedComponent()).update();
 		} catch (Exception e) {
-			
+			System.err.println(e.getMessage());
 		}
 	}
 	
 	public void romUpdated() {
-		romLabel.setText("ROM: " + cpu.getActiveROM().getFileName());
+		if (cpu.getActiveROM() != null) {
+			romLabel.setText("ROM: " + cpu.getActiveROM().getFileName());
+		} else {
+			romLabel.setText("ROM: None");
+		}
 	}
 	
 	private void initTopPanel() {
